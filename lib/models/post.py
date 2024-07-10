@@ -1,27 +1,60 @@
-from . import CURSOR, CONN
+from models.__init__ import CURSOR, CONN
+from datetime import datetime
 
 class Post:
-    def __init__(self, id, date, content):
+    def __init__(self, id, date, content, dog_id):
+        self.id = id
         self.date = date
         self.content = content
-        self.id = id
+        self.dog_id = dog_id
 
-    # ORM methods for class Post
+    @property
+    def date(self):
+        return self._date
+
+    @date.setter
+    def date(self, value):
+        try:
+            datetime.strptime(value, '%d-%m-%Y')
+        except ValueError as e:
+            raise ValueError("Date must be in the format DD-MM-YYYY") from e
+        self._date = value
+
+    @property
+    def content(self):
+        return self._content
+
+    @content.setter
+    def content(self, value):
+        if not isinstance(value, str) or len(value) < 1:
+            raise ValueError("Content must be a non-empty string.")
+        self._content = value
+
     def create_post(self):
-        CURSOR.execute("INSERT INTO posts (id, date, content) VALUES (?, ?, ?)", (self.id, self.date, self.content))
+        CURSOR.execute("INSERT INTO posts (dog_id, date, content) VALUES (?, ?, ?)",
+        (self.dog_id, self.date, self.content))
         CONN.commit()
+        self.id = CURSOR.lastrowid
 
-    @staticmethod
-    def delete_post(id):
+    @classmethod
+    def delete_post(cls, id):
         CURSOR.execute("DELETE FROM posts WHERE id = ?", (id,))
+        if CURSOR.rowcount == 0:
+            raise ValueError(f"No post found with id {id}")
         CONN.commit()
 
-    @staticmethod
-    def get_all_posts():
+    @classmethod
+    def get_all_posts(cls):
         CURSOR.execute("SELECT * FROM posts")
-        return CURSOR.fetchall()
+        return [cls(*row) for row in CURSOR.fetchall()]
 
-    @staticmethod
-    def find_post_by_id(id):
+    @classmethod
+    def get_posts_by_dog(cls, dog_id):
+        CURSOR.execute("SELECT * FROM posts WHERE dog_id = ?", (dog_id,))
+        return [cls(*row) for row in CURSOR.fetchall()]
+
+    @classmethod
+    def find_by_id(cls, id):
         CURSOR.execute("SELECT * FROM posts WHERE id = ?", (id,))
-        return CURSOR.fetchone()
+        row = CURSOR.fetchone()
+        return cls(*row) if row else None

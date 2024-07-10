@@ -4,5 +4,9 @@
 from models.__init__ import CONN, CURSOR
 import ipdb
 
+from models.dog import Dog
+
+from models.post import Post
+
 
 ipdb.set_trace()
