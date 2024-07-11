@@ -36,6 +36,8 @@ def main():
             print("Invalid choice. Please try again.")
 
 def menu():
+    print("Welcome to Dog Blogs!")
+    print("_________________________________________")
     print("\nPlease select an option:")
     print("")
     print("0. Exit the program")
